@@ -7,6 +7,7 @@
 class JWT {
     private $alg;
     private $hash;
+    private $data;
     
     private function base64url_encode($data) {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -16,7 +17,7 @@ class JWT {
         return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
     }
     
-    public function token($header, $payload, $key) {
+    public static function token($header, $payload, $key) {
         $this->data = $this->base64url_encode($header) . '.' . $this->base64url_encode($payload);
         return $this->data.'.'.$this->JWS($header, $payload, $key);
     }
@@ -57,10 +58,10 @@ class JWT {
         if (in_array($hash, hash_algos())) $this->hash = $hash;
     }
 
-    public function JWS($header, $payload, $key) {
+    private function JWS($header, $payload, $key) {
         $json = json_decode($header);
         $this->setAlgorithm($json->alg);
-        if ($this->alg = 'plaintext') {
+        if ($this->alg == 'plaintext') {
             return '';
         }
         return $this->base64url_encode(hash_hmac($this->hash, $this->data, $key, true));
